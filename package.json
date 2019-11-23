@@ -1,0 +1,17 @@
+{
+  "name": "automated-corgi-party",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@mixer/client-node": "^3.5.0",
+    "carina": "^0.11.2",
+    "node-fetch": "^2.6.0",
+    "ws": "^7.2.0"
+  }
+}
