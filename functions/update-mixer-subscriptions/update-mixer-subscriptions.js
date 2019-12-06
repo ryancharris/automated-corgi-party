@@ -39,27 +39,47 @@ exports.handler = async (event, context) => {
       });
     console.log(' ********* currentSubscriptions', currentSubscriptions);
 
-    // 3. Parse channel IDs from subscription data, create array
-    const currenSubscriptionIds = currentSubscriptions.map(sub => {
-      const broadcastEvent = sub.events.find(event => event.includes(':broadcast'));
+    if (currentSubscriptions.length) {
+      // 3. Parse channel IDs from subscription data, create array
+      const currenSubscriptionIds = currentSubscriptions.map(sub => {
+        const broadcastEvent = sub.events.find(event => event.includes(':broadcast'));
 
-      const channelIdRegex = new RegExp(/(\d+)/g);
-      const idArr = Array.from(broadcastEvent.match(channelIdRegex));
+        const channelIdRegex = new RegExp(/(\d+)/g);
+        const idArr = Array.from(broadcastEvent.match(channelIdRegex));
 
-      return idArr[0];
-    });
-    console.log(' ********* currenSubscriptionIds', currenSubscriptionIds);
+        return parseInt(idArr[0]);
+      });
+      console.log(' ********* currenSubscriptionIds', currenSubscriptionIds);
 
-    // 4. Get Mixer IDs from MD list based on URL
-    // const userSearch = await client.request('GET', `/users/search?query=ryanharris`).then(res => {
-    //   console.log(res.body);
-    //   return res.body;
-    // });
-    // console.log(' ********* userSearch', userSearch);
+      // 4. Get Mixer IDs from MD list based on URL
+      const updatedSubscriptionIds = mixerUrls.map(async url => {
+        // Parse username from URL
+        const usernameRegex = new RegExp(/(\w+)$/gim);
+        const usernameArr = Array.from(url.match(usernameRegex));
 
-    // 5. Check subscriptions, identify URLs to add
+        // Get info about each user based on their user name and parse data
+        return client.request('GET', `/users/search?query=${usernameArr[0]}`).then(res => {
+          const user = res.body[0];
+          return {
+            userId: user.id,
+            username: user.username,
+            channelId: user.channel.id
+          };
+        });
+      });
 
-    // 6. Add new subscriptions
+      // Resolves all of the Promises created by the .map() call above
+      Promise.all(updatedSubscriptionIds).then(subscriptions => {
+        // 5. Check subscriptions, identify URLs to add
+        const newChannelIds = subscriptions.filter(sub => {
+          console.log('sub', sub);
+          return !currenSubscriptionIds.includes(sub.channelId);
+        });
+        console.log('newChannelIds', newChannelIds);
+      });
+
+      // 6. Add new subscriptions
+    }
 
     return {
       statusCode: 200,
