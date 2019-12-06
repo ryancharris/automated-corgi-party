@@ -1,3 +1,5 @@
+const AppSecrets = require('../../secrets');
+
 const fetch = require('node-fetch');
 const Mixer = require('@mixer/client-node');
 const client = new Mixer.Client(new Mixer.DefaultRequestRunner());
@@ -16,7 +18,7 @@ exports.handler = async (event, context) => {
 
       client.use(
         new Mixer.OAuthProvider(client, {
-          clientId: '1f156212964f30a35773cb8948f2e44d57eb219b95765945'
+          clientId: AppSecrets.MIXER_CLIENT_ID
         })
       );
 
