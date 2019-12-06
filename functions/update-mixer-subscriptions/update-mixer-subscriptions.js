@@ -1,7 +1,6 @@
 const AppSecrets = require('../../secrets');
 const fetch = require('node-fetch');
 
-const { ShortCodeExpireError, OAuthClient } = require('@mixer/shortcode-oauth');
 const Mixer = require('@mixer/client-node');
 const client = new Mixer.Client(new Mixer.DefaultRequestRunner());
 
@@ -11,10 +10,6 @@ client.use(
     secret: AppSecrets.PARTY_CORGI_SECRET
   })
 );
-
-// const oauthClient = new OAuthClient({
-//   clientId: AppSecrets.PARTY_CORGI_CLIENT_ID
-// });
 
 exports.handler = async (event, context) => {
   try {
@@ -30,20 +25,41 @@ exports.handler = async (event, context) => {
       .catch(err => console.log(err));
 
     const mixerUrls = streamerList.mixer;
-    console.log('mixerUrls', mixerUrls);
 
-    // const { mixerUrls } = streamerList;
-    // console.log(mixerUrls);
+    // 2. Get current hooks from Mixer
+    const currentSubscriptions = await client
+      .request('GET', `/hooks`, {
+        headers: {
+          Authorization: `Secret ${AppSecrets.PARTY_CORGI_SECRET}`
+        }
+      })
+      .then(res => {
+        console.log(res.body);
+        return res.body;
+      });
+    console.log(' ********* currentSubscriptions', currentSubscriptions);
 
-    // 2. Get current subscriptions from Mixer
-    // const currentSubscriptions = await client.request('GET', `/hooks`).then(res => {
+    // 3. Parse channel IDs from subscription data, create array
+    const currenSubscriptionIds = currentSubscriptions.map(sub => {
+      const broadcastEvent = sub.events.find(event => event.includes(':broadcast'));
+
+      const channelIdRegex = new RegExp(/(\d+)/g);
+      const idArr = Array.from(broadcastEvent.match(channelIdRegex));
+
+      return idArr[0];
+    });
+    console.log(' ********* currenSubscriptionIds', currenSubscriptionIds);
+
+    // 4. Get Mixer IDs from MD list based on URL
+    // const userSearch = await client.request('GET', `/users/search?query=ryanharris`).then(res => {
     //   console.log(res.body);
     //   return res.body;
     // });
-    // console.log(currentSubscriptions)
+    // console.log(' ********* userSearch', userSearch);
 
-    // 3. Check subscriptions, identify URLs to add
-    // 4. Add new subscriptions
+    // 5. Check subscriptions, identify URLs to add
+
+    // 6. Add new subscriptions
 
     return {
       statusCode: 200,
