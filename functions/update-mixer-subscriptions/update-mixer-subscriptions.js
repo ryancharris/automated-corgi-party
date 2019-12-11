@@ -40,51 +40,48 @@ exports.handler = async (event, context) => {
     console.log(currentSubscriptions);
 
     // 3. Parse channel IDs from subscription data, create array
-    const currenSubscriptionIds = currentSubscriptions.map(sub => {
+    const currentSubscriptionIds = currentSubscriptions.map(sub => {
       const broadcastEvent = sub.events.find(event => event.includes(':broadcast'));
       const channelIdRegex = new RegExp(/:(.*):/g);
       const idArr = channelIdRegex.exec(broadcastEvent);
       return idArr[1];
     });
     console.log('***** CURRENT SUBSCRIPTION IDS');
-    console.log(currenSubscriptionIds);
+    console.log(currentSubscriptionIds);
 
     // // 4. Get Mixer IDs from MD list based on URL
-    // const updatedSubscriptionIds = mixerUrls.map(async url => {
-    //   // Parse username from URL
-    //   const usernameRegex = new RegExp(/(\w+)$/gim);
-    //   const usernameArr = Array.from(url.match(usernameRegex));
+    const updatedSubscriptionIds = mixerUrls.map(async url => {
+      // Parse username from URL
+      const usernameRegex = new RegExp(/(\w+)$/gim);
+      const usernameArr = Array.from(url.match(usernameRegex));
 
-    //   // Get info about each user based on their user name and parse data
-    //   return client.request('GET', `/users/search?query=${usernameArr[0]}`).then(res => {
-    //     const user = res.body[0];
-    //     return {
-    //       userId: user.id,
-    //       username: user.username,
-    //       channelId: user.channel.id
-    //     };
-    //   });
-    // });
-    // console.log('***** UPDATED SUBSCRIPTION IDS');
-    // console.log(updatedSubscriptionIds);
+      // Get info about each user based on their user name and parse data
+      return await client.request('GET', `/users/search?query=${usernameArr[0]}`).then(res => {
+        const user = res.body[0];
+        return {
+          userId: user.id,
+          username: user.username,
+          channelId: user.channel.id
+        };
+      });
+    });
 
-    // // Resolves all of the Promises created by the .map() call above
-    // const newChannelIds = Promise.all(updatedSubscriptionIds).then(subscriptions => {
-    //   // 5. Check subscriptions, identify URLs to add
-    //   return subscriptions.map(sub => {
-    //     return !currenSubscriptionIds.includes(sub.channelId) ? sub.channelId : null;
-    //   });
-    // });
+    // Resolves all of the Promises created by the .map() call above
+    const newChannelIds = await Promise.all(updatedSubscriptionIds).then(subscriptions => {
+      // 5. Check subscriptions, identify URLs to add
+      return subscriptions.map(sub => {
+        return !currentSubscriptionIds.includes(sub.channelId) ? sub.channelId.toString() : null;
+      });
+    });
 
-    // console.log('***** NEW CHANNEL IDS');
-    // console.log(updatedSubscriptionIds);
+    console.log('***** NEW CHANNEL IDS');
+    console.log(newChannelIds);
 
-    // // 6. Add new subscriptions
-    // const idsToAdd = await newChannelIds.then(res => {
-    //   return res;
-    // });
-    // console.log('***** IDS TO ADD');
-    // console.log(idsToAdd);
+    // 6. Add new subscriptions
+    const idsToAdd = newChannelIds.filter(id => {
+      return !currentSubscriptionIds.includes(id);
+    });
+    console.log('idsToAdd', idsToAdd);
 
     // const newSubscriptions = idsToAdd.map(id => {
     //   client
