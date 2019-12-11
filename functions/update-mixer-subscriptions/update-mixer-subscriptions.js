@@ -34,52 +34,80 @@ exports.handler = async (event, context) => {
         }
       })
       .then(res => {
-        console.log(res.body);
-        return res.body;
+        return res.body.filter(sub => sub.isActive == true);
       });
-    console.log(' ********* currentSubscriptions', currentSubscriptions);
+    console.log('***** CURRENT SUBSCRIPTIONS');
+    console.log(currentSubscriptions);
 
-    if (currentSubscriptions.length) {
-      // 3. Parse channel IDs from subscription data, create array
-      const currenSubscriptionIds = currentSubscriptions.map(sub => {
-        const broadcastEvent = sub.events.find(event => event.includes(':broadcast'));
+    // 3. Parse channel IDs from subscription data, create array
+    const currenSubscriptionIds = currentSubscriptions.map(sub => {
+      const broadcastEvent = sub.events.find(event => event.includes(':broadcast'));
+      const channelIdRegex = new RegExp(/:(.*):/g);
+      const idArr = channelIdRegex.exec(broadcastEvent);
+      return idArr[1];
+    });
+    console.log('***** CURRENT SUBSCRIPTION IDS');
+    console.log(currenSubscriptionIds);
 
-        const channelIdRegex = new RegExp(/(\d+)/g);
-        const idArr = Array.from(broadcastEvent.match(channelIdRegex));
+    // // 4. Get Mixer IDs from MD list based on URL
+    // const updatedSubscriptionIds = mixerUrls.map(async url => {
+    //   // Parse username from URL
+    //   const usernameRegex = new RegExp(/(\w+)$/gim);
+    //   const usernameArr = Array.from(url.match(usernameRegex));
 
-        return parseInt(idArr[0]);
-      });
-      console.log(' ********* currenSubscriptionIds', currenSubscriptionIds);
+    //   // Get info about each user based on their user name and parse data
+    //   return client.request('GET', `/users/search?query=${usernameArr[0]}`).then(res => {
+    //     const user = res.body[0];
+    //     return {
+    //       userId: user.id,
+    //       username: user.username,
+    //       channelId: user.channel.id
+    //     };
+    //   });
+    // });
+    // console.log('***** UPDATED SUBSCRIPTION IDS');
+    // console.log(updatedSubscriptionIds);
 
-      // 4. Get Mixer IDs from MD list based on URL
-      const updatedSubscriptionIds = mixerUrls.map(async url => {
-        // Parse username from URL
-        const usernameRegex = new RegExp(/(\w+)$/gim);
-        const usernameArr = Array.from(url.match(usernameRegex));
+    // // Resolves all of the Promises created by the .map() call above
+    // const newChannelIds = Promise.all(updatedSubscriptionIds).then(subscriptions => {
+    //   // 5. Check subscriptions, identify URLs to add
+    //   return subscriptions.map(sub => {
+    //     return !currenSubscriptionIds.includes(sub.channelId) ? sub.channelId : null;
+    //   });
+    // });
 
-        // Get info about each user based on their user name and parse data
-        return client.request('GET', `/users/search?query=${usernameArr[0]}`).then(res => {
-          const user = res.body[0];
-          return {
-            userId: user.id,
-            username: user.username,
-            channelId: user.channel.id
-          };
-        });
-      });
+    // console.log('***** NEW CHANNEL IDS');
+    // console.log(updatedSubscriptionIds);
 
-      // Resolves all of the Promises created by the .map() call above
-      Promise.all(updatedSubscriptionIds).then(subscriptions => {
-        // 5. Check subscriptions, identify URLs to add
-        const newChannelIds = subscriptions.filter(sub => {
-          console.log('sub', sub);
-          return !currenSubscriptionIds.includes(sub.channelId);
-        });
-        console.log('newChannelIds', newChannelIds);
-      });
+    // // 6. Add new subscriptions
+    // const idsToAdd = await newChannelIds.then(res => {
+    //   return res;
+    // });
+    // console.log('***** IDS TO ADD');
+    // console.log(idsToAdd);
 
-      // 6. Add new subscriptions
-    }
+    // const newSubscriptions = idsToAdd.map(id => {
+    //   client
+    //     .request(`POST`, `/hooks`, {
+    //       body: {
+    //         events: [`channel:${id}:broadcast`],
+    //         kind: 'web',
+    //         url: `https://discordapp.com/api/webhooks/647645997018644519/3hJWQ6W-87TGHhU1RWDJMCSOcc7AbhhmQqir7Z5LWj2ZG5UR3FSn64EK4lu8Brpbe6Ve`
+    //       },
+    //       headers: {
+    //         Authorization: `Secret ${AppSecrets.PARTY_CORGI_SECRET}`,
+    //         'Client-ID': AppSecrets.PARTY_CORGI_CLIENT_ID
+    //       }
+    //     })
+    //     .then(res => {
+    //       console.log(res.body);
+    //     })
+    //     .catch(err => console.log(err));
+    // });
+
+    // Promise.all(newSubscriptions).then(subscriptions => {
+    //   console.log('subscriptions', subscriptions);
+    // });
 
     return {
       statusCode: 200,
