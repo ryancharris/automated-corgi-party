@@ -67,12 +67,16 @@ exports.handler = async (event, context) => {
     });
 
     // Resolves all of the Promises created by the .map() call above
-    const newChannelIds = await Promise.all(updatedSubscriptionIds).then(subscriptions => {
-      // 5. Check subscriptions, identify URLs to add
-      return subscriptions.map(sub => {
-        return !currentSubscriptionIds.includes(sub.channelId) ? sub.channelId.toString() : null;
+    const newChannelIds = await Promise.all(updatedSubscriptionIds)
+      .then(subscriptions => {
+        // 5. Check subscriptions, identify URLs to add
+        return subscriptions.map(sub => {
+          return !currentSubscriptionIds.includes(sub.channelId) ? sub.channelId.toString() : null;
+        });
+      })
+      .catch(err => {
+        console.log('Could not parse newChannelIds', err);
       });
-    });
 
     console.log('***** NEW CHANNEL IDS');
     console.log(newChannelIds);
@@ -82,6 +86,8 @@ exports.handler = async (event, context) => {
       return !currentSubscriptionIds.includes(id);
     });
     console.log('idsToAdd', idsToAdd);
+
+    const addedIdsString = idsToAdd.join(', ');
 
     // const newSubscriptions = idsToAdd.map(id => {
     //   client
@@ -108,7 +114,7 @@ exports.handler = async (event, context) => {
 
     return {
       statusCode: 200,
-      body: 'Success!'
+      body: `Success! Added subscriptions for the following channels: ${addedIdsString}`
     };
   } catch (error) {
     return { statusCode: 500, body: error.toString() };
