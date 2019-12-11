@@ -89,28 +89,24 @@ exports.handler = async (event, context) => {
 
     const addedIdsString = idsToAdd.join(', ');
 
-    // const newSubscriptions = idsToAdd.map(id => {
-    //   client
-    //     .request(`POST`, `/hooks`, {
-    //       body: {
-    //         events: [`channel:${id}:broadcast`],
-    //         kind: 'web',
-    //         url: `https://discordapp.com/api/webhooks/647645997018644519/3hJWQ6W-87TGHhU1RWDJMCSOcc7AbhhmQqir7Z5LWj2ZG5UR3FSn64EK4lu8Brpbe6Ve`
-    //       },
-    //       headers: {
-    //         Authorization: `Secret ${AppSecrets.PARTY_CORGI_SECRET}`,
-    //         'Client-ID': AppSecrets.PARTY_CORGI_CLIENT_ID
-    //       }
-    //     })
-    //     .then(res => {
-    //       console.log(res.body);
-    //     })
-    //     .catch(err => console.log(err));
-    // });
-
-    // Promise.all(newSubscriptions).then(subscriptions => {
-    //   console.log('subscriptions', subscriptions);
-    // });
+    idsToAdd.map(id => {
+      client
+        .request(`POST`, `/hooks`, {
+          body: {
+            events: [`channel:${id}:broadcast`],
+            kind: 'web',
+            url: `https://discordapp.com/api/webhooks/647645997018644519/3hJWQ6W-87TGHhU1RWDJMCSOcc7AbhhmQqir7Z5LWj2ZG5UR3FSn64EK4lu8Brpbe6Ve`
+          },
+          headers: {
+            Authorization: `Secret ${AppSecrets.PARTY_CORGI_SECRET}`,
+            'Client-ID': AppSecrets.PARTY_CORGI_CLIENT_ID
+          }
+        })
+        .then(res => {
+          console.log(res.body);
+        })
+        .catch(err => console.log(err));
+    });
 
     return {
       statusCode: 200,
