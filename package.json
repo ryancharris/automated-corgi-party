@@ -12,7 +12,7 @@
     "@mixer/client-node": "^3.5.0",
     "@mixer/shortcode-oauth": "^1.1.0",
     "carina": "^0.11.2",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^3.1.1",
     "ws": "^7.2.0"
   }
 }
